@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FiveStars — Tu opinión cuenta</title>
+<style>
+.memory-grid{display:grid;grid-template-columns:repeat(4,minmax(48px,1fr));gap:9px;margin:18px 0}.memory-card{min-height:66px;font-size:22px;font-weight:800}.memory-card:disabled{opacity:1;border-color:#e8c547;background:#292514}
+.game-icon{display:grid;place-items:center;width:58px;height:58px;border-radius:17px;background:linear-gradient(145deg,rgba(245,202,65,.2),rgba(245,202,65,.04));border:1px solid rgba(245,202,65,.35);color:#f5ca41;box-shadow:inset 0 1px rgba(255,255,255,.08),0 8px 22px rgba(0,0,0,.2)}.game-icon svg{width:29px;height:29px;display:block}.game-icon .icon-label{font-size:19px;font-weight:850;letter-spacing:-1px}.game-icon .emoji-icon{font-size:27px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}.game-open{margin-top:auto}.feature-tile{display:flex;flex-direction:column;align-items:flex-start}.detail-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px;margin:20px 0}.stat-card{border:1px solid var(--border,rgba(255,255,255,.12));border-radius:14px;padding:14px;background:rgba(255,255,255,.035)}.stat-card strong{display:block;font-size:22px;margin-top:5px;color:#f5ca41}.stat-card span{font-size:12px;opacity:.75}.game-history{margin-top:16px}.game-result{margin-top:12px}
+:root {
+  --site-primary: #8B5CF6;
+  --site-secondary: #241442;
+  --site-background: #0C0912;
+  --site-on-primary: #FFFFFF;
+  --site-on-secondary: #F3E8FF;
+  --site-on-background: #F6F2FC;
+  --site-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-font-heading: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: light-dark(#f6f4fa, var(--site-background)); color: light-dark(#20172e, var(--site-on-background)); font-family: var(--site-font-body); }
+#app { min-height: 100vh; width: 100%; background-color: light-dark(#f6f4fa, var(--site-background)); border-radius: 0; }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+.topbar { height: 72px; position: sticky; top: 0; z-index: 10; display:flex; align-items:center; justify-content:space-between; gap:18px; padding: 0 5vw; background: light-dark(rgba(255,255,255,.92), rgba(12,9,18,.92)); border-bottom: 1px solid light-dark(#e7e0ef,#2a2037); backdrop-filter: blur(16px); }
+.brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:-.8px; font-size: calc(23px * var(--site-heading-scale)); }
+.brand-mark { display:grid; place-items:center; width:36px; height:36px; border-radius: calc(12px * var(--site-radius-scale)); color:#fff; background:linear-gradient(145deg,#B69AFF,#7540DF); box-shadow:0 7px 24px #8b5cf644; }
+.brand-mark svg { width:21px; height:21px; }
+.search { flex:1; max-width:450px; position:relative; }
+.search input { width:100%; padding:12px 15px 12px 42px; border-radius:99px; border:1px solid light-dark(#e2d9ed,#342840); background:light-dark(#f4f0fa,#17111f); color:inherit; outline:none; }
+.search svg { position:absolute; left:15px; top:13px; width:18px; opacity:.55; }
+.top-actions { display:flex; align-items:center; gap:10px; }
+.btn { border:1px solid light-dark(#e2d9ed,#392b4b); border-radius: calc(12px * var(--site-radius-scale)); padding:10px 14px; background:light-dark(#fff,#17111f); color:inherit; font-weight:650; transition:.18s; }
+.btn:hover { transform:translateY(-1px); border-color:var(--site-primary); }
+.btn.primary { background:var(--site-primary); color:white; border-color:var(--site-primary); box-shadow:0 7px 22px #8b5cf633; }
+.btn.ghost { background:transparent; }
+.avatar { width:35px; height:35px; display:inline-grid; place-items:center; border-radius:50%; color:#fff; background:linear-gradient(145deg,#9a73fa,#5430a8); font-weight:800; flex-shrink:0; }
+.layout { max-width:1240px; margin:auto; padding:30px 24px 70px; display:grid; grid-template-columns:220px minmax(0,650px) 260px; gap:25px; align-items:start; }
+.sidebar { position:sticky; top:96px; }
+.side-title { color:light-dark(#82768f,#a69ab7); font-size:11px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; padding:12px 12px 8px; }
+.nav-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; margin:3px 0; color:light-dark(#685c76,#c6b9d7); font-weight:650; cursor:pointer; }
+.nav-item svg { width:19px; height:19px; }
+.nav-item.active,.nav-item:hover { color:light-dark(#6738c5,#d9c7ff); background:light-dark(#ece3fc,#24183a); }
+.nav-item .count { margin-left:auto; font-size:11px; background:#8b5cf622; color:#b99aff; border-radius:7px; padding:3px 6px; }
+.sidebar-note { margin-top:26px; padding:16px; border:1px solid light-dark(#e5d9f5,#39264f); background:linear-gradient(145deg,light-dark(#f0e8ff,#211432),light-dark(#fff,#15101d)); border-radius:16px; }
+.sidebar-note strong { display:block; margin-bottom:7px; }
+.sidebar-note p { margin:0; color:light-dark(#71627f,#b7a8c9); font-size:12px; line-height:1.6; }
+.main-head { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin:2px 0 22px; }
+h1 { font-size:calc(30px * var(--site-heading-scale)); letter-spacing:-1.3px; margin:0 0 6px; }
+.subtitle { color:light-dark(#7b7088,#a99ab8); font-size:13px; }
+.feed-tabs { display:flex; gap:5px; padding:4px; background:light-dark(#eae5f1,#17111f); border-radius:12px; margin-bottom:18px; }
+.feed-tab { flex:1; border:0; border-radius:9px; background:transparent; color:light-dark(#786b86,#b7a8c9); padding:10px; font-size:13px; font-weight:700; }
+.feed-tab.active { background:light-dark(#fff,#2a1d3d); color:light-dark(#6438bd,#e1d2ff); box-shadow:0 2px 8px #0000000a; }
+.card { border:1px solid light-dark(#e8e1ef,#2c2238); background:light-dark(#fff,#15101d); border-radius:calc(18px * var(--site-radius-scale)); margin-bottom:16px; overflow:hidden; }
+.composer { padding:17px; }
+.composer-top { display:flex; gap:12px; align-items:flex-start; }
+.composer textarea { resize:vertical; min-height:74px; max-height:220px; flex:1; width:100%; padding:10px 0; color:inherit; border:0; outline:0; background:transparent; font-size:14px; line-height:1.55; }
+.composer textarea::placeholder { color:light-dark(#a49aaf,#796b8a); }
+.composer-bottom { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding-top:12px; margin-top:9px; border-top:1px solid light-dark(#eee8f3,#2a2035); }
+.composer-tools { display:flex; gap:7px; flex-wrap:wrap; }
+.tool { padding:8px 10px; border:1px solid transparent; background:transparent; color:light-dark(#746782,#b7a5cc); border-radius:9px; font-size:12px; font-weight:650; }
+.tool:hover,.tool.selected { background:#8b5cf61c; color:#b99aff; border-color:#8b5cf633; }
+.composer-extra { display:none; margin:14px 0 0 47px; }
+.composer-extra.show { display:block; }
+.poll-options { display:grid; gap:8px; }
+.poll-options input { width:100%; padding:10px 12px; border:1px solid light-dark(#e4dbea,#3b2b4d); border-radius:10px; background:light-dark(#faf8fd,#100c16); color:inherit; outline:none; }
+.post { padding:19px; }
+.post-head { display:flex; align-items:center; gap:11px; }
+.post-user { flex:1; min-width:0; }
+.userline { display:flex; align-items:center; flex-wrap:wrap; gap:7px; font-weight:750; font-size:13px; }
+.handle { font-size:12px; color:light-dark(#8e829a,#8d7d9f); font-weight:450; }
+.post-meta { color:light-dark(#9a90a5,#82738f); font-size:11px; margin-top:4px; }
+.tag { display:inline-flex; align-items:center; border-radius:6px; padding:4px 7px; font-size:10px; font-weight:800; color:#c4a9ff; background:#8b5cf61b; }
+.tag.hot { color:#ffb6d6; background:#f43f5e1b; }
+.more { border:0; color:light-dark(#968ba0,#9484a4); background:transparent; font-size:20px; padding:3px 7px; border-radius:8px; }
+.more:hover { background:light-dark(#f3eff8,#241a30); }
+.post-text { font-size:14px; line-height:1.75; margin:16px 0 14px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.post-text strong { color:light-dark(#6b39c4,#c3a5ff); }
+.post-actions { display:flex; align-items:center; gap:7px; padding-top:13px; border-top:1px solid light-dark(#eee8f3,#2a2035); }
+.action { display:flex; align-items:center; gap:7px; border:0; background:transparent; color:light-dark(#8b7e98,#9c8bab); padding:8px 10px; border-radius:9px; font-size:12px; font-weight:650; }
+.action svg { width:17px; height:17px; }
+.action:hover { background:#8b5cf61a; color:#b99aff; }
+.action.liked { color:#b99aff; background:#8b5cf61c; }
+.action.report { margin-left:auto; padding:8px; }
+.poll { margin:15px 0 8px; display:grid; gap:8px; }
+.poll-option { position:relative; width:100%; text-align:left; border:1px solid light-dark(#e7dff0,#3a2c4a); background:light-dark(#faf8fd,#1b1425); color:inherit; border-radius:11px; padding:12px 13px; overflow:hidden; }
+.poll-option .bar { position:absolute; left:0; top:0; bottom:0; background:#8b5cf61c; pointer-events:none; }
+.poll-option .opt-content { position:relative; display:flex; justify-content:space-between; gap:10px; font-size:12px; font-weight:650; }
+.poll-option.chosen { border-color:#8b5cf6; }
+.poll-foot { font-size:11px; color:light-dark(#94889f,#91819f); margin-top:10px; }
+.comments { border-top:1px solid light-dark(#eee8f3,#2a2035); margin-top:14px; padding-top:13px; display:none; }
+.comments.open { display:block; }
+.comment { display:flex; gap:9px; margin:12px 0; font-size:12px; line-height:1.6; }
+.comment .avatar { width:28px; height:28px; font-size:11px; }
+.comment strong { margin-right:5px; }
+.comment-form { display:flex; gap:8px; margin-top:12px; }
+.comment-form input { min-width:0; flex:1; padding:10px 12px; border:1px solid light-dark(#e5ddec,#3b2c4c); background:light-dark(#faf8fd,#100c16); color:inherit; border-radius:10px; outline:none; font-size:12px; }
+.right-title { font-size:14px; font-weight:800; margin:4px 0 13px; }
+.trend { padding:14px 0; border-bottom:1px solid light-dark(#e8e1ef,#2b2137); cursor:pointer; }
+.trend:last-child { border-bottom:0; }
+.trend-label { color:#b79aff; font-size:11px; font-weight:700; }
+.trend-name { font-weight:750; font-size:13px; margin:5px 0; }
+.trend-count { color:light-dark(#94889f,#8f809c); font-size:11px; }
+.trend:hover .trend-name { color:#b99aff; }
+.community { padding:17px; }
+.community-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.community-head h3 { margin:0; font-size:14px; }
+.live-dot { display:inline-block; width:7px; height:7px; background:#42d392; border-radius:50%; margin-right:5px; }
+.stat-row { display:flex; justify-content:space-between; padding:9px 0; font-size:12px; color:light-dark(#8c8098,#a696b8); }
+.stat-row strong { color:light-dark(#322541,#f4eaff); }
+.guidelines { margin-top:15px; padding:15px; border-radius:15px; background:light-dark(#eee7fa,#20152f); }
+.guidelines h3 { margin:0 0 7px; font-size:13px; }
+.guidelines p { margin:0; font-size:11px; line-height:1.7; color:light-dark(#756783,#b6a6c9); }
+.empty { text-align:center; padding:35px 20px; color:light-dark(#8c8098,#9b8ba9); }
+.empty svg { width:30px; height:30px; color:#9c78f7; }
+.empty strong { display:block; margin:10px 0 5px; color:inherit; }
+.toast { position:fixed; z-index:30; left:50%; bottom:24px; transform:translate(-50%,20px); background:#27183a; color:#fff; border:1px solid #5c3b83; border-radius:12px; padding:12px 17px; font-size:13px; opacity:0; pointer-events:none; transition:.22s; box-shadow:0 12px 40px #0005; }
+.toast.show { opacity:1; transform:translate(-50%,0); }
+.modal-backdrop { display:none; position:fixed; inset:0; z-index:40; background:#08050dbb; align-items:center; justify-content:center; padding:20px; }
+.modal-backdrop.show { display:flex; }
+.modal { width:min(420px,100%); background:light-dark(#fff,#17101f); border:1px solid light-dark(#e5ddec,#443052); border-radius:20px; padding:23px; box-shadow:0 25px 90px #0007; }
+.modal h2 { margin:0 0 8px; font-size:21px; }
+.modal p { color:light-dark(#81748f,#b1a0c2); font-size:13px; line-height:1.6; }
+.modal input { width:100%; padding:12px; border:1px solid light-dark(#e5ddec,#443052); border-radius:10px; color:inherit; background:light-dark(#faf8fd,#100b16); margin:7px 0 12px; outline:none; }
+.modal-actions { display:flex; gap:9px; justify-content:flex-end; margin-top:15px; }
+.mobile-nav { display:none; }
+.footer { text-align:center; color:light-dark(#9c91a7,#746681); font-size:11px; padding:20px; }
+.site-footer { border-top:1px solid #303030; background:#0c0c0c; padding:28px 24px 22px; color:#a4a4a4; }
+.site-footer-inner { max-width:1240px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; }
+.footer-brand { color:#F2C230; font-weight:850; letter-spacing:-.4px; font-size:15px; }
+.footer-copy { font-size:12px; line-height:1.7; }
+.footer-note { font-size:11px; color:#777; margin-top:5px; }
+/* Animaciones pulidas de FiveStars */
+@keyframes fsFadeUp { from { opacity:0; transform:translateY(18px) scale(.985); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes fsGlow { 0%,100% { box-shadow:0 0 0 rgba(242,194,48,0); } 50% { box-shadow:0 0 24px rgba(242,194,48,.13); } }
+@keyframes fsShine { from { background-position:200% 0; } to { background-position:-200% 0; } }
+@keyframes fsFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+@keyframes fsPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.045); } }
+@keyframes fsPop { 0% { transform:scale(.88); opacity:.35; } 70% { transform:scale(1.035); opacity:1; } 100% { transform:scale(1); } }
+@keyframes fsRipple { from { transform:scale(.25); opacity:.5; } to { transform:scale(1.7); opacity:0; } }
+@keyframes fsBorder { 0%,100% { border-color:#3a3322; } 50% { border-color:#8c7020; } }
+.brand-mark { transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s; }
+.brand:hover .brand-mark { transform:rotate(-9deg) scale(1.08); box-shadow:0 0 25px #f2c23035; }
+.card { animation:fsFadeUp .55s both; transition:border-color .25s, box-shadow .25s, transform .25s; }
+.post:hover,.community:hover,.composer:hover { border-color:#514522; box-shadow:0 12px 35px #0003; }
+.feature-tile { transition:transform .28s cubic-bezier(.2,.8,.2,1), border-color .28s, box-shadow .28s, background .28s; }
+#gamesSection .feature-tile:hover { transform:translateY(-6px); border-color:#9b7c25; box-shadow:0 18px 34px #0005,0 0 0 1px #f2c2300b; }
+#gamesSection .feature-tile:hover .game-icon { animation:fsFloat 1.4s ease-in-out infinite; }
+#gamesSection .feature-tile:after { content:""; position:absolute; top:0; left:-130%; width:75%; height:100%; pointer-events:none; transform:skewX(-18deg); background:linear-gradient(90deg,transparent,#ffffff08,transparent); transition:left .65s ease; }
+#gamesSection .feature-tile:hover:after { left:150%; }
+.btn,.action,.tool,.feed-tab,.nav-item,.poll-option,.game-icon { transition:transform .22s ease, color .22s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease; }
+.btn:active,.action:active,.tool:active,.poll-option:active { transform:scale(.96); }
+.btn.primary:hover { transform:translateY(-2px); box-shadow:0 8px 22px #f2c23025; filter:brightness(1.06); }
+.nav-item { transition:padding-left .22s ease, background .22s ease, color .22s ease; }
+.nav-item:hover { padding-left:16px; }
+.feed-tab.active { animation:fsPop .28s ease-out; }
+.game-icon { position:relative; overflow:hidden; }
+.game-icon:after { content:""; position:absolute; inset:-2px; border-radius:inherit; background:linear-gradient(110deg,transparent 25%,#ffffff16 48%,transparent 70%); background-size:220% 100%; opacity:0; pointer-events:none; }
+.feature-tile:hover .game-icon:after { opacity:1; animation:fsShine .8s ease; }
+.toast.show { animation:fsPop .28s ease-out; }
+.modal-backdrop.show .modal { animation:fsPop .3s cubic-bezier(.2,.8,.2,1); }
+#gameDetailPanel.active { animation:fsFadeUp .4s ease-out; }
+#gameDetailPanel .detail-play { transition:border-color .25s, box-shadow .25s; }
+#gameDetailPanel .detail-play:focus-within { border-color:#8c7020; box-shadow:0 0 0 3px #f2c23012; }
+#gamesSection .game-result { transition:background .2s, border-color .2s, color .2s; }
+#gamesSection .game-result:not(:empty) { animation:fsPop .24s ease-out; }
+.live-dot { animation:fsPulse 1.7s ease-in-out infinite; }
+button:focus-visible,.nav-item:focus-visible,.poll-option:focus-visible { outline:2px solid #f2c230; outline-offset:3px; }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; } }
+.extra-section { display:none; }
+.extra-section.active { display:block; }
+.feature-card { padding:20px; }
+.feature-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+.feature-tile { padding:17px; border:1px solid #3a3a3a; border-radius:14px; background:#202020; }
+.feature-tile h3 { margin:0 0 8px; }
+.feature-tile p { color:#aaa; font-size:13px; line-height:1.5; }
+.post-image { display:block; max-width:100%; max-height:420px; object-fit:contain; border-radius:12px; margin:12px 0; }
+.composer-image-preview { display:none; max-width:100%; max-height:180px; border-radius:10px; margin:12px 0 0 47px; }
+/* Minijuegos: presentación más cuidada y controles claros */
+#gamesSection { padding:24px; background:radial-gradient(ellipse at top right,#3b3218 0,transparent 48%),#191919; }
+#gamesSection > h2 { margin:0; font-size:25px; letter-spacing:-.7px; }
+#gamesSection > .subtitle { margin:8px 0 22px; line-height:1.6; }
+#gamesSection .feature-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+#gamesSection .feature-tile { position:relative; min-width:0; min-height:260px; padding:22px; overflow:hidden; border:1px solid #49402a; border-radius:18px; background:linear-gradient(155deg,#29271f,#1d1d1d 72%); box-shadow:0 12px 28px #0002; }
+#gamesSection .feature-tile:before { content:""; position:absolute; width:110px; height:110px; right:-36px; top:-38px; border-radius:50%; background:#f2c23012; pointer-events:none; }
+#gamesSection .game-icon { display:grid; place-items:center; width:48px; height:48px; margin-bottom:17px; border-radius:15px; background:#f2c23018; border:1px solid #f2c23040; color:#f2c230; font-size:25px; }
+#gamesSection .feature-tile h3 { font-size:17px; letter-spacing:-.3px; margin:0 0 8px; }
+#gamesSection .feature-tile p { color:#aaa; font-size:12px; line-height:1.65; min-height:39px; margin:0 0 16px; }
+#gamesSection .feature-tile .btn { margin-top:4px; min-height:40px; }
+#gamesSection .game-result { min-height:42px; display:flex; align-items:center; margin-top:13px; padding:10px 12px; border:1px solid #39352a; border-radius:11px; background:#151515; color:#c7c7c7; font-size:12px; line-height:1.5; }
+#gamesSection #reactionBtn { min-width:130px; }
+#gamesSection #guessInput { width:100%; min-height:42px; margin:0 0 9px; padding:10px 12px; border:1px solid #454545; border-radius:10px; background:#141414; color:#f1f1f1; outline:none; }
+#gamesSection #guessInput:focus { border-color:#f2c230; box-shadow:0 0 0 3px #f2c23018; }
+#gamesSection .game-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+#gamesSection .game-actions .btn { flex:1; }
+#gamesSection .game-icon { width:58px; height:58px; border-radius:17px; margin-bottom:18px; background:linear-gradient(145deg,#3a321b,#252318); border:1px solid #6b5922; box-shadow:inset 0 1px #ffffff0c,0 8px 20px #0003; }
+#gamesSection .game-icon svg { width:29px; height:29px; display:block; }
+#gamesSection .game-icon .icon-label { font-size:19px; font-weight:850; letter-spacing:-1px; }
+#gamesSection .game-open { display:flex; width:100%; align-items:center; justify-content:center; gap:9px; margin-top:8px; }
+#gamesSection .game-open:after { content:"↗"; font-size:16px; }
+#gameDetailPanel { display:none; padding:24px; background:radial-gradient(ellipse at top right,#3b3218 0,transparent 48%),#191919; }
+#gameDetailPanel.active { display:block; }
+#gameDetailPanel .detail-top { display:flex; align-items:center; gap:13px; margin-bottom:22px; }
+#gameDetailPanel .back-games { margin-bottom:20px; }
+#gameDetailPanel .detail-icon { display:grid; place-items:center; flex-shrink:0; width:54px; height:54px; border:1px solid #6b5922; border-radius:16px; color:#f2c230; background:#f2c23018; }
+#gameDetailPanel .detail-icon svg { width:28px; height:28px; }
+#gameDetailPanel h2 { margin:0 0 5px; font-size:24px; }
+#gameDetailPanel .detail-description { margin:0; color:#aaa; font-size:13px; line-height:1.6; }
+#gameDetailPanel .detail-play { padding:22px; border:1px solid #49402a; border-radius:17px; background:#202020; }
+#gameDetailPanel .detail-play h3 { margin:0 0 12px; font-size:15px; }
+#gameDetailPanel .detail-play .game-result { min-height:48px; display:flex; align-items:center; margin-top:13px; padding:12px; border:1px solid #39352a; border-radius:11px; background:#151515; color:#ddd; font-size:13px; line-height:1.5; }
+#gameDetailPanel .detail-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; margin-top:15px; }
+#gameDetailPanel .stat-card { min-width:0; padding:15px; border:1px solid #383838; border-radius:13px; background:#202020; }
+#gameDetailPanel .stat-card span { display:block; color:#aaa; font-size:11px; line-height:1.5; }
+#gameDetailPanel .stat-card strong { display:block; margin-top:7px; color:#f2c230; font-size:23px; letter-spacing:-.6px; overflow-wrap:anywhere; }
+#gameDetailPanel .history-title { margin:23px 0 10px; font-size:15px; }
+#gameDetailPanel .history-list { display:grid; gap:8px; }
+#gameDetailPanel .history-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 13px; border:1px solid #343434; border-radius:10px; color:#ccc; font-size:12px; }
+#gameDetailPanel .history-item strong { color:#f2c230; }
+#gameDetailPanel .history-empty { padding:16px; color:#999; border:1px dashed #444; border-radius:11px; font-size:12px; line-height:1.6; }
+#gameDetailPanel #detailGuessInput { width:100%; min-height:44px; margin:0 0 10px; padding:11px 12px; border:1px solid #454545; border-radius:10px; background:#141414; color:#f1f1f1; outline:none; }
+#gameDetailPanel #detailGuessInput:focus { border-color:#f2c230; box-shadow:0 0 0 3px #f2c23018; }
+@media(max-width:520px) { #gameDetailPanel { padding:17px; } #gameDetailPanel .detail-stats { grid-template-columns:1fr; } #gameDetailPanel .stat-card { display:flex; align-items:center; justify-content:space-between; gap:10px; } #gameDetailPanel .stat-card strong { margin:0; } }
+@media(max-width:700px) { #gamesSection { padding:17px; } #gamesSection .feature-grid { grid-template-columns:1fr; } #gamesSection .feature-tile { min-height:0; padding:19px; } #gamesSection .feature-tile p { min-height:0; } }
+@media(max-width:700px) { .site-footer { padding:24px 16px 86px; } .site-footer-inner { display:block; text-align:center; } .footer-copy { margin-top:8px; } }
+@media(max-width:1050px) { .layout { grid-template-columns:190px minmax(0,1fr); max-width:900px; } .rightbar { display:none; } }
+@media(max-width:700px) { .topbar { padding:0 15px; height:64px; } .search { display:none; } .top-actions .btn.ghost { display:none; } .layout { display:block; padding:22px 12px 85px; } .sidebar { display:none; } .main-head { align-items:flex-start; } h1 { font-size:27px; } .feed-tabs { margin-bottom:13px; } .composer,.post { padding:15px; } .post-actions { gap:0; } .action { padding:8px; } .mobile-nav { display:flex; position:fixed; bottom:0; left:0; right:0; z-index:20; justify-content:space-around; padding:10px 4px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid light-dark(#e5ddec,#30223d); background:light-dark(#ffffffee,#110c18ee); backdrop-filter:blur(14px); } .mobile-nav button { border:0; background:transparent; color:light-dark(#857792,#aa9ab9); display:grid; justify-items:center; gap:4px; font-size:10px; } .mobile-nav svg { width:19px; height:19px; } }
+/* Paleta FiveStars: negro, gris y amarillo */
+:root { --site-primary:#F2C230; --site-secondary:#292929; --site-background:#111111; --site-on-primary:#171717; --site-on-secondary:#F2C230; --site-on-background:#F1F1F1; }
+body,#app { background:#111; color:#f1f1f1; }
+.topbar { background:rgba(17,17,17,.96); border-color:#333; }
+.brand-mark { background:#F2C230; color:#171717; box-shadow:none; }
+.brand > span:last-child { color:#F2C230 !important; }
+.btn { border-color:#414141; background:#242424; }
+.btn:hover { border-color:#F2C230; transform:none; }
+.btn.primary { background:#F2C230; color:#171717; border-color:#F2C230; box-shadow:none; }
+.nav-item.active,.nav-item:hover { color:#F2C230; background:#292929; }
+.nav-item .count,.tag { color:#F2C230; background:#F2C23120; }
+.sidebar-note,.guidelines { background:#202020; border-color:#393939; }
+.feed-tabs { background:#202020; }
+.feed-tab.active { background:#353535; color:#F2C230; box-shadow:none; }
+.tool:hover,.tool.selected,.action:hover,.action.liked { color:#F2C230; background:#F2C23120; }
+.post-text strong,.trend-label,.trend:hover .trend-name { color:#F2C230; }
+.poll-option.chosen { border-color:#F2C230; }
+.poll-option .bar { background:#F2C23128; }
+.modal,.card { background:#191919; border-color:#333; }
+.toast { background:#242424; border-color:#F2C230; }
+</style>
+</head>
+<body>
+<div id="app" data-sites-preview-theme="custom">
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="m12 2 2.9 6 6.6 1-4.8 4.7 1.1 6.6-5.8-3.1-5.8 3.1 1.1-6.6L2.5 9l6.6-1L12 2Z"/></svg></span>FiveStars<span style="color:#a98aff">.</span></div>
+  <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="searchInput" placeholder="Buscar opiniones, temas..." aria-label="Buscar publicaciones"></label>
+  <div class="top-actions"><button class="btn primary" id="loginBtn">Entrar / Crear cuenta</button><span class="avatar" id="topAvatar" style="display:none">T</span></div>
+</header>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="side-title">Tu espacio</div>
+    <div class="nav-item active" data-filter="all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Inicio</div>
+    <div class="nav-item" data-filter="hot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22c4.4 0 7-3.2 7-7.1 0-2.6-1.5-4.6-3.8-6.9.2 2.2-1 3.2-2 3.7C13.4 7.4 11 3.8 7.6 2 8 6 6.2 8.1 4.7 10.5 1.7 15.2 4.6 22 12 22Z"/></svg>Populares <span class="count">HOT</span></div>
+    <div class="nav-item" data-filter="poll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5m0 14h17M8 15V9m5 6V4m5 11v-4"/></svg>Encuestas</div>
+    <div class="nav-item" data-filter="debate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg>Debates</div>
+    <div class="nav-item" data-filter="games"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 8h11a4 4 0 0 1 3.8 5.2l-1 3a2 2 0 0 1-3.4.8l-2-2H9.1l-2 2a2 2 0 0 1-3.4-.8l-1-3A4 4 0 0 1 6.5 8Z"/><path d="M7 11v4m-2-2h4m7-1h.01M18 14h.01"/></svg> Minijuegos</div>
+    <div class="nav-item" data-filter="voice">🎙️ Chat de voz</div>
+    <div class="side-title" style="margin-top:18px">Cuenta</div>
+    <div class="nav-item" id="profileNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Mi perfil</div>
+    <div class="nav-item" id="moderationNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>Moderación <span class="count" id="reportCount">0</span></div>
+    <div class="sidebar-note"><strong>⭐ Tu voz importa</strong><p>Comparte lo que piensas, escucha otras perspectivas y debate con respeto. Las mejores conversaciones empiezan con una pregunta.</p></div>
+  </aside>
+  <main>
+    <div class="main-head"><div><h1 id="feedTitle">El punto de encuentro</h1><div class="subtitle" id="feedSubtitle">Ideas diferentes. Conversaciones reales.</div></div><button class="btn" id="rulesBtn">Reglas ↗</button></div>
+    <div class="feed-tabs"><button class="feed-tab active" data-sort="latest">✦ Para ti</button><button class="feed-tab" data-sort="popular">↗ Populares</button><button class="feed-tab" data-sort="new">◷ Recientes</button></div>
+    <section class="card composer">
+      <div class="composer-top"><span class="avatar" id="composerAvatar">?</span><textarea id="postText" maxlength="1200" placeholder="¿Qué opinas hoy? Inicia una conversación..."></textarea></div>
+      <input id="postImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden><img id="postImagePreview" class="composer-image-preview" alt="Vista previa de imagen">
+      <div class="composer-extra" id="pollEditor"><div class="poll-options"><input id="pollQ" maxlength="140" placeholder="Pregunta de la encuesta"><input class="pollChoice" maxlength="80" placeholder="Opción 1"><input class="pollChoice" maxlength="80" placeholder="Opción 2"></div><button class="tool" id="addOption">＋ Añadir opción</button></div>
+      <div class="composer-bottom"><div class="composer-tools"><button class="tool" id="imageToggle">▧ Añadir imagen</button><button class="tool" id="pollToggle">▥ Encuesta</button><button class="tool" id="debateToggle">⚖ Debate</button></div><button class="btn primary" id="publishBtn">Publicar ↗</button></div>
+    </section>
+    <section id="gamesSection" class="card feature-card extra-section"><h2>Minijuegos</h2><p class="subtitle">Pausa los debates y reta tus reflejos, lógica y suerte.</p><div class="feature-grid"><div class="feature-tile"><div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4 3 13h7l-1 7 12-12h-8l2-4z"/></svg></div><h3>Prueba de reflejos</h3><p>Espera la señal y pulsa tan rápido como puedas. Consulta tu mejor tiempo, promedio e historial.</p><button class="btn primary game-open" data-open-game="reaction">Jugar</button></div><div class="feature-tile"><div class="game-icon"><span class="icon-label">123</span></div><h3>Adivina el número</h3><p>Encuentra el número secreto del 1 al 20 con solo 5 intentos.</p><button class="btn primary game-open" data-open-game="guess">Jugar</button></div><div class="feature-tile"><div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V6a1.5 1.5 0 0 1 3 0v4-6a1.5 1.5 0 0 1 3 0v6-4a1.5 1.5 0 0 1 3 0v5-2a1.5 1.5 0 0 1 3 0v6c0 4-2.5 7-6.5 7h-1c-2.5 0-4-1.1-5.3-3L3.5 14a1.7 1.7 0 0 1 2.6-2.2L8 14"/></svg></div><h3>Piedra, papel o tijera</h3><p>Elige tu jugada y compite contra la computadora.</p><button class="btn primary game-open" data-open-game="rps">Jugar</button></div><div class="feature-tile"><div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></div><h3>Reto matemático</h3><p>Resuelve operaciones aleatorias antes de que se te acabe el tiempo.</p><button class="btn primary game-open" data-open-game="math">Jugar</button></div><div class="feature-tile"><div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3.5" width="11" height="15" rx="2" transform="rotate(-9 4.5 3.5)"/><rect x="9" y="5.5" width="11" height="15" rx="2"/><path d="m12.5 10 2-2 2 2m-4 4 2 2 2-2"/></svg></div><h3>Memoria de parejas</h3><p>Encuentra las parejas de emojis usando la memoria.</p><button class="btn primary game-open" data-open-game="memory">Jugar</button></div></div></section>
+    <section id="gameDetailPanel" class="card extra-section" aria-live="polite"></section>
+    <section id="voiceSection" class="card feature-card extra-section"><h2>🎙️ Sala de voz</h2><p>Activa o apaga tu micrófono cuando quieras.</p><p class="subtitle">Permite el acceso desde el navegador. El audio se queda en este dispositivo; para que otras personas te escuchen en tiempo real hay que conectar un servidor de voz compartido.</p><div class="game-actions"><button class="btn primary" id="voiceBtn" type="button">🎙️ Activar micrófono</button><button class="btn" id="voiceMuteBtn" type="button" disabled>Silenciar</button></div><p id="voiceStatus" aria-live="polite">Micrófono apagado. Pulsa «Activar micrófono» y acepta el permiso del navegador.</p></section>
+    <div id="feed"></div>
+  </main>
+  <aside class="rightbar">
+    <section class="card community"><div class="community-head"><h3>La comunidad</h3><span style="font-size:11px;color:#9d8cae"><i class="live-dot"></i>En vivo</span></div><div class="stat-row"><span>Conversaciones</span><strong id="statPosts">128</strong></div><div class="stat-row"><span>Opiniones hoy</span><strong id="statToday">34</strong></div><div class="stat-row"><span>Encuestas activas</span><strong id="statPolls">12</strong></div></section>
+    <section class="card" style="padding:17px"><div class="right-title">🔥 Temas que se mueven</div><div class="trend" data-topic="¿Los videojuegos competitivos son deportes?"><div class="trend-label">#Gaming</div><div class="trend-name">¿Los videojuegos son deportes?</div><div class="trend-count">Debate · Comunidad</div></div><div class="trend" data-topic="¿Qué importa más en el fútbol: talento o disciplina?"><div class="trend-label">#Fútbol</div><div class="trend-name">Talento vs. disciplina</div><div class="trend-count">Opiniones divididas</div></div><div class="trend" data-topic="¿La música de antes era mejor que la de ahora?"><div class="trend-label">#Música</div><div class="trend-name">¿La música de antes era mejor?</div><div class="trend-count">Pregunta abierta</div></div><div class="trend" data-topic="¿Las redes sociales nos conectan o nos distraen?"><div class="trend-label">#Sociedad</div><div class="trend-name">¿Conectados o distraídos?</div><div class="trend-count">Debate · Comunidad</div></div></section>
+    <section class="guidelines"><h3>🛡️ Debate con respeto</h3><p>Critica ideas, no personas. No compartas datos privados. Reporta contenido que incumpla las reglas.</p></section>
+  </aside>
+</div>
+<footer class="site-footer"><div class="site-footer-inner"><div><div class="footer-brand">FiveStars<span style="color:#f1f1f1">.</span></div><div class="footer-note">Ideas diferentes. Conversaciones reales.</div></div><div class="footer-copy">© <span id="copyrightYear">2026</span> FiveStars. Todos los derechos reservados.<br>Las opiniones se discuten; las personas se respetan.</div></div></footer>
+<nav class="mobile-nav"><button data-filter="all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Inicio</button><button data-filter="hot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22c4 0 7-3 7-7 0-3-2-5-4-7 0 2-1 3-2 4C12 7 10 4 8 2c0 4-2 6-3 9-2 5 1 11 7 11Z"/></svg>Popular</button><button id="mobileCompose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>Publicar</button><button id="mobileProfile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</button></nav>
+<div class="toast" id="toast"></div>
+<div class="modal-backdrop" id="modalBackdrop"><div class="modal" id="modalContent"></div></div>
+</div>
+<!-- Controles heredados ocultos: evitan que los listeners antiguos fallen al iniciar. -->
+<div hidden aria-hidden="true"><button id="reactionBtn" type="button"></button><span id="reactionResult"></span><input id="guessInput" type="number"><button id="guessBtn" type="button"></button><span id="guessResult"></span></div>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const icon = {heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>',comment:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg>',share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.4m-6.6 7 6.6 4.1"/></svg>'};
+const seed = [
+{id:1,name:'LunaVioleta',handle:'@lunavioleta',initial:'L',time:'hace 12 min',tag:'DEBATE',topic:'debate',text:'Pregunta seria: ¿creen que una opinión puede estar equivocada o todo depende del punto de vista? 🤔\n\nPara mí hay opiniones personales, pero también existen hechos que podemos comprobar. ¿Ustedes qué piensan?',likes:24,comments:[{name:'Mateo',text:'Creo que se pueden respetar todas las opiniones sin que todas sean igual de correctas.'},{name:'pixel_azul',text:'Exacto, una cosa es una opinión y otra un dato comprobable.'}],liked:false},
+{id:2,name:'Nox',handle:'@nox.exe',initial:'N',time:'hace 28 min',tag:'ENCUESTA',topic:'poll',text:'¿Qué prefieres para una buena historia en un videojuego?',likes:17,comments:[{name:'LunaVioleta',text:'Una historia que te haga tomar decisiones difíciles.'}],poll:{question:'Elige tu prioridad',options:[{text:'Historia profunda',votes:42},{text:'Jugabilidad',votes:36},{text:'Mundo abierto',votes:18},{text:'Multijugador',votes:24}],voted:-1},liked:false},
+{id:3,name:'SinFiltro',handle:'Anónimo',initial:'?',time:'hace 41 min',tag:'ANÓNIMO',topic:'all',anonymous:true,text:'Siento que en internet muchas personas discuten solo para ganar, no para entender al otro. ¿Cuándo fue la última vez que cambiaron de opinión gracias a una conversación?',likes:31,comments:[{name:'Ari',text:'Me pasó hablando de fútbol con un amigo. Escuchar ayuda mucho.'}],liked:false},
+{id:4,name:'Kaiser',handle:'@kaiser_10',initial:'K',time:'hace 1 h',tag:'OPINIÓN',topic:'all',text:'Opinión impopular: la disciplina termina siendo más importante que el talento, especialmente cuando quieres mejorar en algo. El talento te puede dar ventaja al inicio, pero la constancia te mantiene.',likes:53,comments:[{name:'Santi',text:'Aunque tener las dos cosas es la combinación perfecta.'},{name:'Nox',text:'La disciplina hace que el talento no se desperdicie.'}],liked:false}
+];
+let posts = JSON.parse(localStorage.getItem('fs_posts')||'null') || seed;
+let reports = JSON.parse(localStorage.getItem('fs_reports')||'[]');
+let user = JSON.parse(localStorage.getItem('fs_user')||'null');
+let pollMode = false, debateMode = false, filter = 'all', sort = 'latest', searchTerm = '', postImageData = '', reactionStart = 0, reactionTimer = null, reactionReady = false, voiceStream = null;
+function save(){localStorage.setItem('fs_posts',JSON.stringify(posts));localStorage.setItem('fs_reports',JSON.stringify(reports));if(user)localStorage.setItem('fs_user',JSON.stringify(user));}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
+function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function avatarFor(p){return p.anonymous?'?':escapeHtml((p.initial||p.name||'?').slice(0,1).toUpperCase())}
+function updateHeader(){ $('#loginBtn').style.display=user?'none':'';$('#topAvatar').style.display=user?'inline-grid':'none';if(user)$('#topAvatar').textContent=user.name.slice(0,1).toUpperCase();$('#composerAvatar').textContent=user?user.name.slice(0,1).toUpperCase():'?';$('#reportCount').textContent=reports.length; }
+function render(){let list=[...posts].filter(p=>!p.anonymous);if(filter==='hot')list=list.filter(p=>p.likes>=25);if(filter==='poll')list=list.filter(p=>p.poll);if(filter==='debate')list=list.filter(p=>p.topic==='debate'||p.tag==='DEBATE');if(searchTerm)list=list.filter(p=>(p.text+' '+p.name+' '+(p.poll?.question||'')).toLowerCase().includes(searchTerm.toLowerCase()));if(sort==='popular')list.sort((a,b)=>b.likes-a.likes);else if(sort==='new')list.sort((a,b)=>b.id-a.id);else list.sort((a,b)=>b.id-a.id);
+$('#gamesSection').classList.toggle('active',filter==='games');$('#voiceSection').classList.toggle('active',filter==='voice');$('#feed').style.display=['games','voice'].includes(filter)?'none':'';$('.composer').style.display=['games','voice'].includes(filter)?'none':'';if(!['games','voice'].includes(filter))$('#feed').innerHTML=list.length?list.map(postHTML).join(''):'<div class="card empty"><div style="font-size:28px">✦</div><strong>No encontramos publicaciones</strong><span>Prueba otro tema o inicia la conversación.</span></div>';$('#statPosts').textContent=128+posts.length-seed.length;$('#statToday').textContent=34+Math.max(0,posts.length-seed.length);$('#statPolls').textContent=12+posts.filter(p=>p.poll).length-seed.filter(p=>p.poll).length;updateHeader();}
+function postHTML(p){const displayName=p.anonymous?'Usuario anónimo':escapeHtml(p.name);const handle=p.anonymous?'Identidad oculta':escapeHtml(p.handle||'@'+p.name.toLowerCase());let poll='';if(p.poll){let total=p.poll.options.reduce((a,o)=>a+o.votes,0);poll='<div class="poll">'+p.poll.options.map((o,i)=>{let pct=total?Math.round(o.votes/total*100):0;return `<button class="poll-option ${p.poll.voted===i?'chosen':''}" data-vote="${p.id}" data-opt="${i}"><span class="bar" style="width:${p.poll.voted>=0?pct:0}%"></span><span class="opt-content"><span>${escapeHtml(o.text)}</span><span>${p.poll.voted>=0?pct+'%':''}</span></span></button>`}).join('')+'</div><div class="poll-foot">'+(p.poll.voted>=0?'Votaste · ':'')+total+' votos · Encuesta de demostración</div>'}
+let comments=(p.comments||[]).map(c=>`<div class="comment"><span class="avatar">${escapeHtml((c.name||'?').slice(0,1).toUpperCase())}</span><div><strong>${escapeHtml(c.name)}</strong>${escapeHtml(c.text)}</div></div>`).join('');
+return `<article class="card post" data-post="${p.id}"><div class="post-head"><span class="avatar">${avatarFor(p)}</span><div class="post-user"><div class="userline">${displayName}<span class="handle">${handle}</span>${p.tag?`<span class="tag ${p.tag==='DEBATE'?'hot':''}">${escapeHtml(p.tag)}</span>`:''}</div><div class="post-meta">${escapeHtml(p.time||'ahora')} · FiveStars</div></div><button class="more" data-menu="${p.id}" aria-label="Más opciones">···</button></div><div class="post-text">${escapeHtml(p.text).replace(/\n/g,'<br>')}</div>${p.image?`<img class="post-image" src="${p.image}" alt="Imagen compartida por ${displayName}">`:''}${poll}<div class="post-actions"><button class="action ${p.liked?'liked':''}" data-like="${p.id}">${icon.heart}<span>${p.likes}</span></button><button class="action" data-comments="${p.id}">${icon.comment}<span>${(p.comments||[]).length} comentarios</span></button><button class="action" data-share="${p.id}">${icon.share}<span>Compartir</span></button><button class="action report" data-report="${p.id}" title="Reportar">⚑</button></div><div class="comments" id="comments-${p.id}">${comments}<form class="comment-form" data-comment-form="${p.id}"><input name="comment" maxlength="400" placeholder="Añade algo a la conversación..." required><button class="btn primary" type="submit" style="padding:8px 12px">Enviar</button></form></div></article>`}
+function setFilter(f){filter=f;$$('[data-filter]').forEach(x=>x.classList.toggle('active',x.dataset.filter===f));$('#feedTitle').textContent=({all:'El punto de encuentro',hot:'Lo más popular',poll:'Tu voto cuenta',debate:'La arena de debate',profile:'Mi perfil',moderation:'Centro de moderación',games:'Minijuegos',voice:'Chat de voz'})[f]||'El punto de encuentro';$('#feedSubtitle').textContent=({all:'Ideas diferentes. Conversaciones reales.',hot:'Las conversaciones que están encendiendo el feed.',poll:'Vota y descubre qué piensa la comunidad.',debate:'Defiende tus ideas. Escucha las de los demás.',games:'Pequeños retos para la comunidad.',voice:'Habla con tu voz, no solo con tus opiniones.'})[f]||'Ideas diferentes. Conversaciones reales.';render()}
+function openModal(html){$('#modalContent').innerHTML=html;$('#modalBackdrop').classList.add('show')}
+function closeModal(){$('#modalBackdrop').classList.remove('show')}
+function loginModal(){openModal(`<h2>Entra a FiveStars</h2><p>Solo necesitas un nombre de usuario. No hace falta correo ni contraseña.</p><form id="loginForm"><label style="font-size:12px;font-weight:700">Nombre de usuario</label><input name="name" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" required placeholder="Ej. Thirt" autocomplete="off"><div class="modal-actions"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary">Continuar</button></div></form>`)}
+$('#loginBtn').addEventListener('click',()=>user?profileModal():loginModal());function profileModal(){openModal(`<h2>Tu perfil</h2><p>Sesión local de demostración.</p><div style="display:flex;align-items:center;gap:12px;margin:18px 0"><span class="avatar">${escapeHtml(user?.name?.slice(0,1)||'?')}</span><div><strong>${escapeHtml(user?.name||'Invitado')}</strong><div style="font-size:12px;color:#a695b8">${user?'Cuenta local':'Sin iniciar sesión'}</div></div></div><p>Publicaciones tuyas: ${posts.filter(p=>p.owner===user?.name).length}</p><div class="modal-actions">${user?'<button class="btn" id="logoutBtn">Cerrar sesión</button>':''}<button class="btn primary" data-close>Listo</button></div>`)}
+$('#publishBtn').addEventListener('click',()=>{const text=$('#postText').value.trim();if(!user){toast('Inicia sesión para publicar con tu cuenta.');loginModal();return}if(!text&&!postImageData){toast('Escribe algo o añade una imagen.');$('#postText').focus();return}let poll=null;if(pollMode){const q=$('#pollQ').value.trim(),opts=$$('.pollChoice').map(x=>x.value.trim()).filter(Boolean);if(!q||opts.length<2){toast('Añade una pregunta y al menos dos opciones.');return}poll={question:q,options:opts.map(text=>({text,votes:0})),voted:-1}}
+const name=user.name;posts.unshift({id:Date.now(),name,handle:'@'+name.toLowerCase(),initial:name.slice(0,1),time:'ahora',tag:poll?'ENCUESTA':debateMode?'DEBATE':'OPINIÓN',topic:poll?'poll':debateMode?'debate':'all',text,likes:0,comments:[],liked:false,poll,image:postImageData||'',owner:user.name});save();$('#postText').value='';$('#pollQ').value='';$$('.pollChoice').forEach((x,i)=>x.value='');postImageData='';$('#postImagePreview').src='';$('#postImagePreview').style.display='none';$('#postImageFile').value='';pollMode=false;debateMode=false;$('#pollEditor').classList.remove('show');$('#pollToggle').classList.remove('selected');$('#debateToggle').classList.remove('selected');render();toast('¡Publicación compartida!');});
+$('#pollToggle').addEventListener('click',()=>{pollMode=!pollMode;$('#pollEditor').classList.toggle('show',pollMode);$('#pollToggle').classList.toggle('selected',pollMode);if(pollMode){debateMode=false;$('#debateToggle').classList.remove('selected')}});
+$('#debateToggle').addEventListener('click',()=>{debateMode=!debateMode;$('#debateToggle').classList.toggle('selected',debateMode);if(debateMode){pollMode=false;$('#pollEditor').classList.remove('show');$('#pollToggle').classList.remove('selected')}});
+$('#imageToggle').addEventListener('click',()=>$('#postImageFile').click());$('#postImageFile').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/')){toast('Selecciona un archivo de imagen.');return}if(file.size>2*1024*1024){toast('La imagen debe pesar menos de 2 MB.');e.target.value='';return}const reader=new FileReader();reader.onload=()=>{postImageData=String(reader.result);$('#postImagePreview').src=postImageData;$('#postImagePreview').style.display='block'};reader.readAsDataURL(file)});
+$('#reactionBtn').addEventListener('click',()=>{const b=$('#reactionBtn');if(reactionReady){const elapsed=Math.round(performance.now()-reactionStart);$('#reactionResult').textContent='Tu tiempo: '+elapsed+' ms';b.textContent='Jugar otra vez';b.style.background='';reactionReady=false;return}if(reactionTimer){clearTimeout(reactionTimer);reactionTimer=null}b.textContent='Espera...';b.style.background='#555';b.disabled=true;$('#reactionResult').textContent='No pulses todavía...';reactionTimer=setTimeout(()=>{reactionReady=true;reactionStart=performance.now();b.disabled=false;b.textContent='¡PULSA!';b.style.background='#36b36a';$('#reactionResult').textContent='¡Ahora!';reactionTimer=null},1200+Math.random()*2800)});
+$('#guessBtn').addEventListener('click',()=>{const n=Number($('#guessInput').value);if(!Number.isInteger(n)||n<1||n>10){$('#guessResult').textContent='Escribe un número del 1 al 10.';return}const target=Number($('#guessInput').dataset.target||Math.ceil(Math.random()*10));$('#guessInput').dataset.target=String(target);if(n===target){$('#guessResult').textContent='¡Correcto! 🎉 Nuevo número listo.';$('#guessInput').dataset.target=String(Math.ceil(Math.random()*10))}else $('#guessResult').textContent=n<target?'Prueba con uno más alto.':'Prueba con uno más bajo.'});
+$('#voiceBtn').addEventListener('click',async()=>{if(voiceStream){voiceStream.getTracks().forEach(t=>t.stop());voiceStream=null;$('#voiceBtn').textContent='🎙️ Activar micrófono';$('#voiceMuteBtn').disabled=true;$('#voiceMuteBtn').textContent='Silenciar';$('#voiceStatus').textContent='Micrófono apagado.';return}try{voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});$('#voiceBtn').textContent='Apagar micrófono';$('#voiceMuteBtn').disabled=false;$('#voiceStatus').textContent='Micrófono activo en este dispositivo. Aún no transmite a otros usuarios.'}catch(err){$('#voiceStatus').textContent='No se pudo acceder al micrófono. Revisa los permisos del navegador y usa HTTPS o localhost.'}});
+$('#voiceMuteBtn').addEventListener('click',()=>{if(!voiceStream)return;const tracks=voiceStream.getAudioTracks();if(!tracks.length)return;const enabled=!tracks[0].enabled;tracks.forEach(t=>t.enabled=enabled);$('#voiceMuteBtn').textContent=enabled?'Silenciar':'Activar sonido';$('#voiceStatus').textContent=enabled?'Micrófono activo localmente; no se transmite a otras personas.':'Micrófono silenciado.'});
+$('#addOption').addEventListener('click',()=>{const wrap=$('#pollEditor .poll-options');if(wrap.querySelectorAll('input').length>=5){toast('Máximo cinco opciones.');return}const i=wrap.querySelectorAll('input').length;const el=document.createElement('input');el.className='pollChoice';el.maxLength=80;el.placeholder='Opción '+(i+1);wrap.appendChild(el)});
+$('#searchInput').addEventListener('input',e=>{searchTerm=e.target.value;render()});$$('[data-sort]').forEach(b=>b.addEventListener('click',()=>{sort=b.dataset.sort;$$('[data-sort]').forEach(x=>x.classList.toggle('active',x===b));render()}));$$('[data-filter]').forEach(el=>el.addEventListener('click',()=>setFilter(el.dataset.filter)));$('#profileNav').addEventListener('click',()=>user?profileModal():loginModal());$('#mobileProfile').addEventListener('click',()=>user?profileModal():loginModal());$('#mobileCompose').addEventListener('click',()=>{$('#postText').focus();window.scrollTo({top:0,behavior:'smooth'})});
+$('#feed').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const id=Number(b.dataset.like||b.dataset.comments||b.dataset.share||b.dataset.report||b.dataset.vote||b.dataset.menu);const p=posts.find(x=>x.id===id);if(!p)return;if(b.dataset.like){p.liked=!p.liked;p.likes+=p.liked?1:-1;save();render()}else if(b.dataset.comments){$('#comments-'+id).classList.toggle('open')}else if(b.dataset.vote!==undefined){if(p.poll.voted>=0){toast('Ya votaste en esta encuesta.');return}const i=Number(b.dataset.opt);p.poll.options[i].votes++;p.poll.voted=i;save();render();$('#comments-'+id)?.classList.add('open');toast('¡Voto registrado!')}else if(b.dataset.report){openModal(`<h2>Reportar publicación</h2><p>Selecciona por qué crees que este contenido necesita revisión. En esta demo, el reporte queda guardado localmente.</p><form id="reportForm"><select name="reason" style="width:100%;padding:12px;border-radius:10px;background:#100b16;color:inherit;border:1px solid #443052"><option>Insultos o acoso</option><option>Información privada</option><option>Spam</option><option>Contenido inapropiado</option><option>Otro motivo</option></select><div class="modal-actions"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary">Enviar reporte</button></div></form>`);$('#reportForm').addEventListener('submit',ev=>{ev.preventDefault();reports.push({postId:id,reason:new FormData(ev.target).get('reason'),date:new Date().toLocaleString('es-CO')});save();closeModal();updateHeader();toast('Reporte guardado para revisión.');});}else if(b.dataset.share){const url=location.href; if(navigator.clipboard?.writeText)navigator.clipboard.writeText(url).then(()=>toast('Enlace copiado.')).catch(()=>toast('Copia el enlace desde la barra del navegador.'));else toast('Copia el enlace desde la barra del navegador.')}else if(b.dataset.menu){openModal(`<h2>Opciones de publicación</h2><p>¿Qué quieres hacer con esta publicación?</p><div class="modal-actions"><button class="btn" data-close>Cancelar</button>${user&&p.owner===user.name?'<button class="btn primary" id="deletePost">Eliminar publicación</button>':'<button class="btn primary" id="reportFromMenu">Reportar</button>'}</div>`);$('#deletePost')?.addEventListener('click',()=>{posts=posts.filter(x=>x.id!==id);save();closeModal();render();toast('Publicación eliminada.')});$('#reportFromMenu')?.addEventListener('click',()=>{closeModal();const target=$(`[data-report="${id}"]`);target?.click()})}});
+$('#feed').addEventListener('submit',e=>{const form=e.target.closest('[data-comment-form]');if(form){e.preventDefault();const id=Number(form.dataset.commentForm),p=posts.find(x=>x.id===id),input=form.elements.comment;const text=input.value.trim();if(!text)return;if(!user){toast('Crea un perfil para comentar.');loginModal();return}p.comments.push({name:user.name,text});save();render();$('#comments-'+id).classList.add('open');toast('Comentario añadido.')}});
+$('#modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop'||e.target.closest('[data-close]'))closeModal()});$('#modalContent').addEventListener('submit',e=>{if(e.target.id==='loginForm'){e.preventDefault();const name=new FormData(e.target).get('name').trim();if(!name)return;user={name};save();closeModal();updateHeader();render();toast('¡Hola, '+name+'! Perfil creado en este navegador.')}});$('#modalContent').addEventListener('click',e=>{if(e.target.id==='logoutBtn'){user=null;localStorage.removeItem('fs_user');closeModal();updateHeader();toast('Sesión cerrada.')}});
+$('#moderationNav').addEventListener('click',()=>{setFilter('moderation');let html=reports.length?reports.map((r,i)=>`<div style="padding:12px 0;border-bottom:1px solid #34253f"><strong style="font-size:13px">Reporte #${i+1}</strong><p style="margin:5px 0">Motivo: ${escapeHtml(r.reason)} · Publicación ${r.postId}</p><small>${escapeHtml(r.date)}</small><div><button class="btn" data-resolve="${i}" style="margin-top:8px">Marcar revisado</button></div></div>`).join(''):'<p>No hay reportes pendientes. Cuando reportes una publicación, aparecerá aquí.</p>';openModal(`<h2>Centro de moderación</h2><p>Panel de demostración para revisar reportes en este navegador.</p>${html}<div class="modal-actions"><button class="btn primary" data-close>Listo</button></div>`)});
+$('#modalContent').addEventListener('click',e=>{const b=e.target.closest('[data-resolve]');if(b){reports.splice(Number(b.dataset.resolve),1);save();closeModal();updateHeader();toast('Reporte marcado como revisado.')}});
+$('#rulesBtn').addEventListener('click',()=>openModal(`<h2>Reglas de FiveStars</h2><p><strong>1. Debate ideas, no ataques a personas.</strong></p><p><strong>2. Nada de acoso, amenazas o discursos de odio.</strong></p><p><strong>3. Protege tu privacidad.</strong> No publiques teléfonos, direcciones ni contraseñas.</p><p><strong>4. Evita spam y contenido engañoso.</strong></p><p><strong>5. Reporta con responsabilidad.</strong> Los reportes falsos perjudican a la comunidad.</p><div class="modal-actions"><button class="btn primary" data-close>Entendido</button></div>`));$$('[data-topic]').forEach(t=>t.addEventListener('click',()=>{$('#postText').value=t.dataset.topic+'\n\n¿Qué opinan ustedes?';$('#postText').focus();window.scrollTo({top:0,behavior:'smooth'})}));
+updateHeader();render();
+</script>
+<script>
+// Registro local por nombre, sin correo ni contraseña.
+(() => {
+  const reserved = () => {
+    let names = [];
+    try { names = JSON.parse(localStorage.getItem('fs_names') || '[]'); } catch (_) {}
+    if (!Array.isArray(names)) names = [];
+    try {
+      const savedPosts = JSON.parse(localStorage.getItem('fs_posts') || '[]');
+      if (Array.isArray(savedPosts)) savedPosts.forEach(p => { if (p.name && !p.anonymous) names.push(p.name); });
+    } catch (_) {}
+    try { const savedUser = JSON.parse(localStorage.getItem('fs_user') || 'null'); if (savedUser?.name) names.push(savedUser.name); } catch (_) {}
+    return [...new Set(names.map(n => String(n).toLowerCase()))];
+  };
+  const modalContent = document.getElementById('modalContent');
+  const loginBtn = document.getElementById('loginBtn');
+  const brand = document.querySelector('.brand');
+  const adminBadge = document.createElement('span');
+  adminBadge.className = 'tag'; adminBadge.textContent = 'ADMIN'; adminBadge.style.display = 'none';
+  brand.appendChild(adminBadge);
+  const updateAdmin = () => {
+    let current = null;
+    try { current = JSON.parse(localStorage.getItem('fs_user') || 'null'); } catch (_) {}
+    const admin = current?.name === 'Thirt';
+    adminBadge.style.display = admin ? 'inline-flex' : 'none';
+    const mod = document.getElementById('moderationNav');
+    if (mod) mod.style.display = admin ? 'flex' : 'none';
+  };
+  const originalLoginModal = loginModal;
+  loginModal = function () {
+    openModal('<h2>Entra a FiveStars</h2><p>Solo necesitas un nombre. No hace falta correo ni contraseña. Los nombres ya usados no se pueden repetir en este navegador.</p><form id="loginForm"><label style="font-size:12px;font-weight:700">Nombre de usuario</label><input name="name" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" required placeholder="Ej. Thirt" autocomplete="off"><div class="modal-actions"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary">Continuar</button></div></form>');
+  };
+  document.addEventListener('submit', e => {
+    if (e.target?.id !== 'loginForm') return;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    const name = new FormData(e.target).get('name').trim();
+    if (!/^[A-Za-z0-9_]{3,24}$/.test(name)) { toast('Usa entre 3 y 24 letras, números o guion bajo.'); return; }
+    if (reserved().includes(name.toLowerCase())) { toast('Ese nombre ya está usado. Elige otro.'); return; }
+    const account = { name };
+    const names = JSON.parse(localStorage.getItem('fs_names') || '[]'); names.push(name);
+    localStorage.setItem('fs_names', JSON.stringify(names));
+    localStorage.setItem('fs_user', JSON.stringify(account));
+    closeModal(); toast(name === 'Thirt' ? 'Perfil ADMIN creado.' : 'Perfil creado.');
+    location.reload();
+  }, true);
+  document.addEventListener('click', e => {
+    const mod = e.target.closest('#moderationNav');
+    if (mod) {
+      let current = null; try { current = JSON.parse(localStorage.getItem('fs_user') || 'null'); } catch (_) {}
+      if (current?.name !== 'Thirt') { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); toast('Solo Thirt tiene permisos de administrador.'); }
+      return;
+    }
+    const menu = e.target.closest('button[data-menu]');
+    if (!menu) return;
+    let current = null; try { current = JSON.parse(localStorage.getItem('fs_user') || 'null'); } catch (_) {}
+    if (current?.name !== 'Thirt') return;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    const id = Number(menu.dataset.menu);
+    openModal('<h2>Opciones de administrador</h2><p>Como ADMIN puedes eliminar cualquier publicación.</p><div class="modal-actions"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="adminDeletePost">Eliminar publicación</button></div>');
+    document.getElementById('adminDeletePost').addEventListener('click', () => {
+      let saved = []; try { saved = JSON.parse(localStorage.getItem('fs_posts') || '[]'); } catch (_) {}
+      localStorage.setItem('fs_posts', JSON.stringify(saved.filter(p => Number(p.id) !== id)));
+      closeModal(); toast('Publicación eliminada por ADMIN.'); location.reload();
+    });
+  }, true);
+  const previousUpdateHeader = updateHeader;
+  updateHeader = function () { previousUpdateHeader(); updateAdmin(); };
+  updateAdmin();
+})();
+</script>
+<script>
+/* FiveStars local prototype: password login, profile photo and invite-only registration. */
+(() => {
+  const INVITE_CODE = "FIVESTARS-05STAR-INVITE";
+  const accountKey = "fs_accounts_v2";
+  const getAccounts = () => { try { return JSON.parse(localStorage.getItem(accountKey) || "{}"); } catch (_) { return {}; } };
+  const saveAccounts = a => localStorage.setItem(accountKey, JSON.stringify(a));
+  // Old name-only sessions are not trusted as authenticated accounts.
+  try {
+    const oldSession = JSON.parse(localStorage.getItem("fs_user") || "null");
+    if (oldSession?.name && !getAccounts()[oldSession.name.toLowerCase()]) {
+      localStorage.removeItem("fs_user");
+      user = null;
+    }
+  } catch (_) { localStorage.removeItem("fs_user"); user = null; }
+  const inviteAllowed = () => new URLSearchParams(location.search).get("invite") === INVITE_CODE;
+  const hashPassword = async password => {
+    const bytes = new TextEncoder().encode(password);
+    const hash = await crypto.subtle.digest("SHA-256", bytes);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
+  };
+  const safeName = n => /^[A-Za-z0-9_]{3,24}$/.test(n);
+  const originalProfileModal = profileModal;
+  loginModal = function () {
+    const inviteText = inviteAllowed()
+      ? '<p style="color:#F2C230">Enlace de invitación válido: puedes crear una cuenta y entrar al grupo.</p>'
+      : '<p>Para crear una cuenta nueva necesitas el enlace especial de invitación. Si ya tienes cuenta, inicia sesión.</p>';
+    openModal('<h2>FiveStars</h2>' + inviteText +
+      '<form id="loginForm"><label style="font-size:12px;font-weight:700">Qué quieres hacer</label><select name="mode" id="accountMode" style="width:100%;padding:12px;border-radius:10px;background:#202020;color:inherit;border:1px solid #444"><option value="login">Iniciar sesión</option><option value="register"' + (inviteAllowed() ? '' : ' disabled') + '>Crear cuenta (requiere invitación)</option></select>' +
+      '<label style="font-size:12px;font-weight:700;display:block;margin-top:12px">Nombre de usuario</label><input name="name" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" required placeholder="Ej. Thirt" autocomplete="username" style="width:100%;padding:12px;border-radius:10px;background:#202020;color:inherit;border:1px solid #444">' +
+      '<label style="font-size:12px;font-weight:700;display:block;margin-top:12px">Contraseña</label><input name="password" type="password" minlength="8" maxlength="100" required autocomplete="current-password" placeholder="Mínimo 8 caracteres" style="width:100%;padding:12px;border-radius:10px;background:#202020;color:inherit;border:1px solid #444">' +
+      '<div class="modal-actions"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary">Continuar</button></div></form>');
+  };
+  profileModal = function () {
+    const photo = user && user.photo ? '<img src="' + user.photo + '" alt="Foto de perfil" style="width:58px;height:58px;border-radius:50%;object-fit:cover">' : '<span class="avatar" style="width:58px;height:58px;font-size:22px">' + (user?.name?.slice(0,1) || "?") + '</span>';
+    const inviteLink = location.href.split("?")[0] + "?invite=" + INVITE_CODE;
+    openModal('<h2>Tu perfil</h2><div style="display:flex;align-items:center;gap:12px;margin:18px 0">' + photo + '<div><strong>' + escapeHtml(user?.name || "Invitado") + '</strong><div style="font-size:12px;color:#b9b9b9">' + (user?.name === "Thirt" ? "ADMIN" : "Cuenta FiveStars") + '</div></div></div>' +
+      '<label style="font-size:12px;font-weight:700">Foto de perfil desde tu PC</label><input id="profilePhotoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="width:100%;margin:10px 0">' +
+      '<div class="modal-actions"><button class="btn" type="button" id="savePhotoBtn">Guardar foto</button><button class="btn" type="button" id="logoutBtn">Cerrar sesión</button><button class="btn primary" data-close>Listo</button></div>' +
+      (user?.name === "Thirt" ? '<hr style="border-color:#444;margin:18px 0"><p>Enlace especial para registrar nuevos miembros del grupo:</p><input id="inviteLinkField" readonly value="' + inviteLink.replace(/&/g, "&amp;").replace(/"/g, "&quot;") + '" style="width:100%;padding:10px;background:#202020;color:inherit;border:1px solid #444"><button class="btn primary" type="button" id="copyInviteBtn" style="margin-top:8px">Copiar enlace de invitación</button>' : '') );
+    document.getElementById("savePhotoBtn")?.addEventListener("click", () => {
+      const file = document.getElementById("profilePhotoFile")?.files?.[0];
+      if (!file) { toast("Elige una imagen primero."); return; }
+      if (file.size > 2 * 1024 * 1024) { toast("La foto debe pesar menos de 2 MB."); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        user.photo = String(reader.result);
+        localStorage.setItem("fs_user", JSON.stringify(user));
+        const accounts = getAccounts();
+        if (accounts[user.name.toLowerCase()]) accounts[user.name.toLowerCase()].photo = user.photo;
+        saveAccounts(accounts);
+        closeModal(); updateHeader(); render(); toast("Foto de perfil actualizada.");
+      };
+      reader.readAsDataURL(file);
+    });
+    document.getElementById("copyInviteBtn")?.addEventListener("click", () => {
+      const field = document.getElementById("inviteLinkField");
+      field.select();
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(field.value).then(() => toast("Enlace copiado.")).catch(() => toast("Copia el enlace del campo."));
+      else { try { document.execCommand("copy"); toast("Enlace copiado."); } catch (_) { toast("Copia el enlace del campo."); } }
+    });
+  };
+  document.addEventListener("submit", async e => {
+    if (e.target?.id !== "loginForm" || !e.target.elements.password) return;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    const form = e.target;
+    const mode = form.elements.mode.value;
+    const name = form.elements.name.value.trim();
+    const password = form.elements.password.value;
+    if (!safeName(name)) { toast("El nombre debe tener entre 3 y 24 letras, números o guion bajo."); return; }
+    if (password.length < 8) { toast("La contraseña debe tener al menos 8 caracteres."); return; }
+    const accounts = getAccounts();
+    const key = name.toLowerCase();
+    const passwordHash = await hashPassword(password);
+    if (mode === "register") {
+      if (!inviteAllowed()) { toast("Necesitas el enlace especial para registrarte."); return; }
+      if (accounts[key] || (reserved().includes(key) && key !== "thirt")) { toast("Ese nombre ya está usado. Elige otro."); return; }
+      accounts[key] = { name, passwordHash, photo: "" };
+      saveAccounts(accounts);
+      user = { name, photo: "" };
+      localStorage.setItem("fs_user", JSON.stringify(user));
+      const names = JSON.parse(localStorage.getItem("fs_names") || "[]"); names.push(name);
+      localStorage.setItem("fs_names", JSON.stringify(names));
+      closeModal(); updateHeader(); render(); toast("Cuenta creada. Ya estás dentro del grupo.");
+      return;
+    }
+    const account = accounts[key];
+    if (!account || account.passwordHash !== passwordHash) { toast("Nombre o contraseña incorrectos."); return; }
+    user = { name: account.name, photo: account.photo || "" };
+    localStorage.setItem("fs_user", JSON.stringify(user));
+    closeModal(); updateHeader(); render(); toast("Sesión iniciada.");
+  }, true);
+  const oldUpdateHeader = updateHeader;
+  updateHeader = function () {
+    oldUpdateHeader();
+    const avatar = document.getElementById("topAvatar");
+    const composerAvatar = document.getElementById("composerAvatar");
+    [avatar, composerAvatar].forEach(el => {
+      if (!el) return;
+      if (user?.photo) { el.textContent = ""; el.style.backgroundImage = 'url("' + user.photo + '")'; el.style.backgroundSize = "cover"; el.style.backgroundPosition = "center"; }
+      else { el.style.backgroundImage = ""; el.textContent = user?.name?.slice(0,1).toUpperCase() || "?"; }
+    });
+  };
+  updateHeader();
+})();
+</script>
+<script>
+/* Panel individual de minijuegos con estadísticas locales. */
+(() => {
+  const panel = document.getElementById('gameDetailPanel');
+  const games = document.getElementById('gamesSection');
+  if (!panel || !games) return;
+  const storeKey = 'fs_game_stats_v1';
+  let activeGame = '';
+  let readyAt = 0;
+  let waitTimer = null;
+  let waiting = false;
+  let secret = 0;
+  let attempts = 0;
+  const readStats = () => { try { return JSON.parse(localStorage.getItem(storeKey) || '{"reaction":[],"guess":{"wins":0,"rounds":0,"attempts":0,"streak":0,"bestStreak":0}}'); } catch (_) { return {reaction:[],guess:{wins:0,rounds:0,attempts:0,streak:0,bestStreak:0}}; } };
+  const saveStats = s => { try { localStorage.setItem(storeKey, JSON.stringify(s)); } catch (_) {} };
+  const fmt = n => Number(n).toLocaleString('es-CO');
+  const iconSvg = type => type === 'math' ? '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>' : type === 'reaction' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4 3 13h7l-1 7 12-12h-8l2-4z"/></svg>' : '<span class="icon-label">123</span>';
+  const statCard = (label, value) => `<div class="stat-card"><span>${label}</span><strong>${value}</strong></div>`;
+  function openGame(type) {
+    const sameGame = activeGame === type;
+    activeGame = type;
+    games.classList.remove('active');
+    panel.classList.add('active');
+    const s = readStats();
+    if (type === 'reaction') {
+      const times = s.reaction || [];
+      const best = times.length ? Math.min(...times) : null;
+      const avg = times.length ? Math.round(times.reduce((a,b)=>a+b,0)/times.length) : null;
+      panel.innerHTML = `<button class="btn back-games" data-back-games>← Todos los minijuegos</button><div class="detail-top"><div class="detail-icon">${iconSvg(type)}</div><div><h2>Prueba de reflejos</h2><p class="detail-description">Pulsa únicamente cuando la señal cambie a verde. Intenta superar tu récord personal.</p></div></div><div class="detail-play"><h3>Tu reto</h3><button class="btn primary" id="detailReactionBtn" style="width:100%;min-height:48px">Iniciar prueba</button><div class="game-result" id="detailReactionResult" aria-live="polite">Pulsa iniciar y espera la señal verde.</div></div><div class="detail-stats">${statCard('Partidas completadas',fmt(times.length))}${statCard('Mejor tiempo',best===null?'—':best+' ms')}${statCard('Tiempo promedio',avg===null?'—':avg+' ms')}</div><h3 class="history-title">Historial reciente</h3><div class="history-list">${times.length ? times.slice(-8).reverse().map((t,i)=>`<div class="history-item"><span>Partida ${times.length-i}</span><strong>${t} ms</strong></div>`).join('') : '<div class="history-empty">Aún no hay resultados. Completa tu primera prueba para comenzar las estadísticas.</div>'}</div>`;
+    } else if (type === 'rps') {
+      const rs=s.rps||{wins:0,losses:0,draws:0,rounds:0}; panel.innerHTML = `<button class="btn back-games" data-back-games>← Todos los minijuegos</button><div class="detail-top"><div class="detail-icon">${iconSvg('rps')}</div><div><h2>Piedra, papel o tijera</h2><p class="detail-description">Elige una opción y juega contra la computadora.</p></div></div><div class="detail-play"><div class="game-actions"><button class="btn primary" data-rps="Piedra">✊ Piedra</button><button class="btn primary" data-rps="Papel">✋ Papel</button><button class="btn primary" data-rps="Tijera">✌️ Tijera</button></div><div class="game-result" id="rpsResult" aria-live="polite">¡Haz tu primera jugada!</div></div><div class="detail-stats">${statCard('Partidas',fmt(rs.rounds))}${statCard('Victorias',fmt(rs.wins))}${statCard('Derrotas',fmt(rs.losses))}${statCard('Empates',fmt(rs.draws))}</div><p class="subtitle">Estadísticas guardadas en este navegador.</p>`;
+    } else if (type === 'math') {
+      const a = Math.floor(Math.random()*20)+1, b = Math.floor(Math.random()*20)+1, op = Math.random()<.5?'+':'−';
+      const ms=s.math||{correct:0,attempts:0,streak:0,bestStreak:0}; panel.innerHTML = `<button class="btn back-games" data-back-games>← Todos los minijuegos</button><div class="detail-top"><div class="detail-icon">${iconSvg('math')}</div><div><h2>Reto matemático</h2><p class="detail-description">Resuelve la operación y comprueba tu respuesta.</p></div></div><div class="detail-play"><div class="game-result" id="mathTimer">Tiempo: 5 s</div><h3>${a} ${op} ${b} = ?</h3><input id="mathAnswer" type="number" placeholder="Tu respuesta"><button class="btn primary" id="mathCheck">Comprobar</button><div class="game-result" id="mathResult" aria-live="polite">¡Tú puedes!</div><button class="btn" id="mathNew">Nueva operación</button></div><div class="detail-stats">${statCard('Respuestas correctas',fmt(ms.correct))}${statCard('Intentos',fmt(ms.attempts))}${statCard('Racha actual',fmt(ms.streak))}${statCard('Mejor racha',fmt(ms.bestStreak))}</div>`; panel.dataset.mathDeadline=Date.now()+5000;const timerEl=document.getElementById('mathTimer');const tick=()=>{const left=Math.max(0,Math.ceil((Number(panel.dataset.mathDeadline)-Date.now())/1000));if(timerEl)timerEl.textContent='Tiempo: '+left+' s';if(left<=0){clearInterval(mathCountdown);const f=document.getElementById('mathAnswer');if(f)f.disabled=true;const b=document.getElementById('mathCheck');if(b)b.disabled=true;const o=document.getElementById('mathResult');if(o)o.textContent='¡Se acabó el tiempo! Pulsa «Nueva operación» para volver a jugar.';}};const mathCountdown=setInterval(tick,100);tick();
+      panel.dataset.mathA=String(a); panel.dataset.mathB=String(b); panel.dataset.mathOp=op;
+    } else if (type === 'memory') {
+      const deck=['🍎','🚀','🐱','⚽','🎮','🌟','🍎','🚀','🐱','⚽','🎮','🌟'].sort(()=>Math.random()-.5);
+      const mem=s.memory||{wins:0,rounds:0,bestMoves:0}; panel.innerHTML = `<button class="btn back-games" data-back-games>← Todos los minijuegos</button><div class="detail-top"><div class="detail-icon">${iconSvg('memory')}</div><div><h2>Memoria de parejas</h2><p class="detail-description">Encuentra las 6 parejas. Pulsa dos cartas por turno.</p></div></div><div class="memory-grid">${deck.map((v,i)=>`<button class="btn memory-card" data-memory-index="${i}" data-memory-value="${v}" aria-label="Carta ${i+1}">?</button>`).join('')}</div><div class="game-result" id="memoryResult" aria-live="polite">Parejas encontradas: 0 de 6</div><div class="detail-stats">${statCard('Partidas completadas',fmt(mem.rounds))}${statCard('Victorias',fmt(mem.wins))}${statCard('Mejor número de turnos',mem.bestMoves?fmt(mem.bestMoves):'—')}</div>`;
+      panel.dataset.memoryDeck=JSON.stringify(deck); panel.dataset.memoryOpen='[]'; panel.dataset.memoryFound='[]';
+    } else {
+      const g = s.guess || {wins:0,rounds:0,attempts:0,streak:0,bestStreak:0};
+      if (!sameGame || !secret) { secret = Math.ceil(Math.random()*20); attempts = 0; }
+      panel.innerHTML = `<button class="btn back-games" data-back-games>← Todos los minijuegos</button><div class="detail-top"><div class="detail-icon">${iconSvg(type)}</div><div><h2>Adivina el número</h2><p class="detail-description">Encuentra el número secreto del 1 al 20. Tienes solo 5 intentos por ronda.</p></div></div><div class="detail-play"><h3>Tu reto</h3><input id="detailGuessInput" type="number" min="1" max="20" placeholder="Elige un número del 1 al 20"><div class="game-actions"><button class="btn primary" id="detailGuessBtn">Comprobar</button><button class="btn" id="detailNewRound">Nuevo número</button></div><div class="game-result" id="detailGuessResult" aria-live="polite">¿Podrás adivinarlo en 5 intentos?</div><div class="game-result" id="detailAttemptsLeft" aria-live="polite">Intentos restantes: 5</div></div><div class="detail-stats">${statCard('Victorias',fmt(g.wins))}${statCard('Rondas jugadas',fmt(g.rounds))}${statCard('Mejor racha',fmt(g.bestStreak))}</div><h3 class="history-title">Tu progreso</h3><div class="history-list"><div class="history-item"><span>Intentos acumulados</span><strong>${fmt(g.attempts)}</strong></div><div class="history-item"><span>Racha actual</span><strong>${fmt(g.streak)}</strong></div><div class="history-item"><span>Porcentaje de victoria</span><strong>${g.rounds ? Math.round(g.wins/g.rounds*100)+'%' : '—'}</strong></div></div>`;
+    }
+    panel.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function backToGames() { if(waitTimer) clearTimeout(waitTimer); waitTimer=null; waiting=false; activeGame=''; panel.classList.remove('active'); games.classList.add('active'); games.scrollIntoView({behavior:'smooth',block:'start'}); }
+  document.addEventListener('click', e => {
+    const open = e.target.closest('[data-open-game]');
+    if (open) { openGame(open.dataset.openGame); return; }
+    if (e.target.closest('[data-back-games]')) { backToGames(); return; }
+    const rps = e.target.closest('[data-rps]');
+    if (rps) { const choices=['Piedra','Papel','Tijera'], cpu=choices[Math.floor(Math.random()*3)], me=rps.dataset.rps; const won=me!==cpu&&((me==='Piedra'&&cpu==='Tijera')||(me==='Papel'&&cpu==='Piedra')||(me==='Tijera'&&cpu==='Papel')),draw=me===cpu;const result=draw?'¡Empate!':won?'¡Ganaste!':'Ganó la computadora.';const s=readStats();s.rps=s.rps||{wins:0,losses:0,draws:0,rounds:0};s.rps.rounds++;if(draw)s.rps.draws++;else if(won)s.rps.wins++;else s.rps.losses++;saveStats(s);openGame('rps');const out=document.getElementById('rpsResult');if(out)out.textContent=`Tú: ${me} · Computadora: ${cpu}. ${result}`;return; }
+    if (e.target.closest('#mathCheck')) { if(Number(panel.dataset.mathDeadline||0)<=Date.now()){const o=document.getElementById('mathResult');if(o)o.textContent='¡Se acabó el tiempo! Pulsa «Nueva operación» para intentarlo otra vez.';const f=document.getElementById('mathAnswer');if(f)f.disabled=true;return;}const a=Number(panel.dataset.mathA),b=Number(panel.dataset.mathB),op=panel.dataset.mathOp,expected=op==='+'?a+b:a-b,field=document.getElementById('mathAnswer'),n=Number(field?.value),out=document.getElementById('mathResult');if(!field||String(field.value).trim()===''){if(out)out.textContent='Escribe una respuesta.';return;}const s=readStats();s.math=s.math||{correct:0,attempts:0,streak:0,bestStreak:0};s.math.attempts++;if(n===expected){s.math.correct++;s.math.streak++;s.math.bestStreak=Math.max(s.math.bestStreak,s.math.streak);}else{s.math.streak=0;}saveStats(s);if(out)out.textContent=n===expected?'¡Correcto! 🎉':'No es correcto. Inténtalo de nuevo.';openGame('math');const fresh=document.getElementById('mathResult');if(fresh)fresh.textContent=out?.textContent||'';return; }
+    if (e.target.closest('#mathNew')) { openGame('math'); return; }
+    const memoryCard=e.target.closest('[data-memory-index]');
+    if (memoryCard) { if(memoryCard.disabled)return; let open=JSON.parse(panel.dataset.memoryOpen||'[]'),found=JSON.parse(panel.dataset.memoryFound||'[]'); const idx=Number(memoryCard.dataset.memoryIndex); if(open.length>=2)return; memoryCard.textContent=memoryCard.dataset.memoryValue; open.push(idx); panel.dataset.memoryOpen=JSON.stringify(open); if(open.length===2){const cards=[...panel.querySelectorAll('[data-memory-index]')]; if(cards[open[0]].dataset.memoryValue===cards[open[1]].dataset.memoryValue){found.push(...open);found=[...new Set(found)];found.forEach(i=>{cards[i].disabled=true;cards[i].textContent=cards[i].dataset.memoryValue;});panel.dataset.memoryFound=JSON.stringify(found);const out=document.getElementById('memoryResult');if(out)out.textContent=`Parejas encontradas: ${found.length/2} de 6`;panel.dataset.memoryOpen='[]';}else{setTimeout(()=>{open.forEach(i=>{if(!found.includes(i)){const card=panel.querySelector(`[data-memory-index="${i}"]`);if(card)card.textContent='?';}});panel.dataset.memoryOpen='[]';},650);}} return; }
+    if (e.target.closest('#detailReactionBtn')) {
+      const b = document.getElementById('detailReactionBtn');
+      const out = document.getElementById('detailReactionResult');
+      if (!b || !out) return;
+      if (waiting) { out.textContent = '¡Demasiado pronto! Espera a la señal verde e inténtalo otra vez.'; clearTimeout(waitTimer); waitTimer=null; waiting=false; b.disabled=false; b.textContent='Intentar de nuevo'; b.style.background=''; return; }
+      if (b.dataset.ready === 'yes') {
+        const elapsed = Math.round(performance.now()-readyAt); const s=readStats(); s.reaction=s.reaction||[]; s.reaction.push(elapsed); saveStats(s); openGame('reaction'); const fresh=document.getElementById('detailReactionResult'); if(fresh) fresh.textContent=`Resultado: ${elapsed} ms. ${elapsed===Math.min(...s.reaction)?'¡Nuevo récord personal!':'¡Prueba otra vez para mejorar!'}`; return;
+      }
+      b.dataset.ready=''; b.disabled=true; b.textContent='Prepárate…'; b.style.background='#555'; out.textContent='Espera a que aparezca la señal verde…'; waiting=true;
+      waitTimer=setTimeout(()=>{ const current=document.getElementById('detailReactionBtn'); if(!current)return; waiting=false; current.disabled=false; current.dataset.ready='yes'; current.textContent='¡PULSA AHORA!'; current.style.background='#249653'; readyAt=performance.now(); const result=document.getElementById('detailReactionResult'); if(result)result.textContent='¡Ahora! Pulsa el botón.'; waitTimer=null; },1300+Math.random()*2700); return;
+    }
+    if (e.target.closest('#detailGuessBtn')) {
+      const input=document.getElementById('detailGuessInput'), out=document.getElementById('detailGuessResult'); if(!input||!out)return;
+      const n=Number(input.value); if(!Number.isInteger(n)||n<1||n>20){out.textContent='Escribe un número entero del 1 al 20.';return;}
+      if (attempts >= 5) { out.textContent='Ya usaste los 5 intentos. Pulsa «Nuevo número» para otra ronda.'; return; }
+      attempts++; const s=readStats(); s.guess=s.guess||{wins:0,rounds:0,attempts:0,streak:0,bestStreak:0}; s.guess.attempts++;
+      if(n===secret){s.guess.wins++;s.guess.rounds++;s.guess.streak++;s.guess.bestStreak=Math.max(s.guess.bestStreak,s.guess.streak);saveStats(s);out.textContent=`¡Correcto! Lo lograste en ${attempts} ${attempts===1?'intento':'intentos'}.`;secret=Math.ceil(Math.random()*20);attempts=0;input.value='';}
+      else {saveStats(s);out.textContent=n<secret?'El número secreto es más alto.':'El número secreto es más bajo.';if(attempts>=5){s.guess.rounds++;s.guess.streak=0;saveStats(s);out.textContent+=' Se acabaron los 5 intentos. Pulsa «Nuevo número» para volver a jugar.';}}
+      openGame('guess'); const fresh=document.getElementById('detailGuessResult'); if(fresh)fresh.textContent=out.textContent; const left=document.getElementById('detailAttemptsLeft'); if(left)left.textContent='Intentos restantes: '+(attempts>=5?0:5-attempts); const freshInput=document.getElementById('detailGuessInput'); if(freshInput && attempts>=5) freshInput.disabled=true; return;
+    }
+    if (e.target.closest('#detailNewRound')) { secret=Math.ceil(Math.random()*20); attempts=0; const input=document.getElementById('detailGuessInput'),out=document.getElementById('detailGuessResult'),left=document.getElementById('detailAttemptsLeft'); if(input){input.value='';input.disabled=false;} if(out)out.textContent='Nuevo número generado. Tienes 5 intentos. ¡Adivínalo!'; if(left)left.textContent='Intentos restantes: 5'; }
+  });
+  document.addEventListener('keydown', e => { if(e.key==='Enter' && e.target?.id==='detailGuessInput') document.getElementById('detailGuessBtn')?.click(); });
+  // No reemplazar setFilter: puede estar declarado como constante en el script principal.
+  document.addEventListener('click', e => {
+    const nav = e.target.closest('[data-filter]');
+    if (nav && nav.dataset.filter !== 'games') panel.classList.remove('active');
+  });
+})();
+</script>
+</body>
+</html>
